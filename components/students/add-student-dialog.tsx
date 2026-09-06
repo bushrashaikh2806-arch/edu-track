@@ -39,7 +39,9 @@ import { CLASSES, DIVISIONS, ACADEMIC_YEARS } from "@/lib/mock-data"
 
 import type { Student } from "@/lib/types"
 
-const API_BASE_URL = "http://127.0.0.1:8000"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "http://127.0.0.1:8000"
 
 const empty = {
   fullName: "",
@@ -221,7 +223,6 @@ export function AddStudentDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto sm:max-w-2xl">
-
         <DialogHeader>
           <DialogTitle>Add student</DialogTitle>
 
@@ -235,7 +236,6 @@ export function AddStudentDialog({
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 py-4"
         >
-
           {/* Personal Information */}
           <FieldSet>
             <FieldLegend variant="label">
@@ -243,9 +243,7 @@ export function AddStudentDialog({
             </FieldLegend>
 
             <FieldGroup className="@container">
-
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
                 {/* Full Name */}
                 <Field data-invalid={!!errors.fullName}>
                   <FieldLabel htmlFor="fullName">
@@ -370,7 +368,6 @@ export function AddStudentDialog({
                     disabled={saving}
                   />
                 </Field>
-
               </div>
             </FieldGroup>
           </FieldSet>
@@ -382,7 +379,6 @@ export function AddStudentDialog({
             </FieldLegend>
 
             <FieldGroup>
-
               <Field data-invalid={!!errors.password}>
                 <FieldLabel htmlFor="password">
                   Temporary password *
@@ -438,7 +434,6 @@ export function AddStudentDialog({
                   {errors.password}
                 </FieldError>
               </Field>
-
             </FieldGroup>
           </FieldSet>
 
@@ -449,9 +444,7 @@ export function AddStudentDialog({
             </FieldLegend>
 
             <FieldGroup>
-
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
                 {/* Student ID */}
                 <Field data-invalid={!!errors.studentId}>
                   <FieldLabel htmlFor="studentId">
@@ -604,14 +597,12 @@ export function AddStudentDialog({
                     </SelectContent>
                   </Select>
                 </Field>
-
               </div>
             </FieldGroup>
           </FieldSet>
 
           {/* Footer */}
           <DialogFooter>
-
             <Button
               type="button"
               variant="outline"
@@ -638,9 +629,7 @@ export function AddStudentDialog({
                 ? "Creating account..."
                 : "Create student"}
             </Button>
-
           </DialogFooter>
-
         </form>
       </DialogContent>
     </Dialog>
