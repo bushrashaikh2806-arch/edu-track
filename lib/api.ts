@@ -21,9 +21,10 @@ import {
   notifications as seedNotifications,
 } from "./mock-data"
 
-export const API_BASE_URL = "http://127.0.0.1:8000"
-
-const LATENCY = 350
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "http://127.0.0.1:8000"
+  const LATENCY = 350
 
 function delay<T>(data: T, ms = LATENCY): Promise<T> {
   return new Promise((resolve) =>

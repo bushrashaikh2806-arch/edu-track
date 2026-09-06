@@ -8,7 +8,6 @@ import {
   Clock,
   Users,
   UserX,
-  TrendingUp,
   Search,
   AlertTriangle,
 } from "lucide-react"
@@ -115,8 +114,14 @@ export default function ClassesPage() {
       try {
         setStudentsLoading(true)
 
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_BASE_URL ||
+          "http://127.0.0.1:8000"
+
         const response = await fetch(
-          `http://127.0.0.1:8000/classes/students?class_name=${encodeURIComponent(className)}&division=${encodeURIComponent(division)}`,
+          `${API_BASE_URL}/classes/students?class_name=${encodeURIComponent(
+            className,
+          )}&division=${encodeURIComponent(division)}`,
         )
 
         if (!response.ok) {
@@ -124,6 +129,7 @@ export default function ClassesPage() {
         }
 
         const result = await response.json()
+
         setClassStudents(result)
       } catch (err) {
         console.error(err)
@@ -166,8 +172,7 @@ export default function ClassesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
 
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">
@@ -179,8 +184,7 @@ export default function ClassesPage() {
         </p>
       </div>
 
-
-      {/* ================= TODAY'S OVERVIEW ================= */}
+      {/* TODAY'S OVERVIEW */}
 
       <div>
         <h3 className="mb-4 text-lg font-semibold">
@@ -188,8 +192,8 @@ export default function ClassesPage() {
         </h3>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-
           {/* Lectures */}
+
           <div className="rounded-xl border bg-card p-5">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">
@@ -208,8 +212,8 @@ export default function ClassesPage() {
             </div>
           </div>
 
-
           {/* Students */}
+
           <div className="rounded-xl border bg-card p-5">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">
@@ -228,8 +232,8 @@ export default function ClassesPage() {
             </div>
           </div>
 
-
           {/* Present */}
+
           <div className="rounded-xl border bg-card p-5">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-success/10 p-2">
@@ -248,8 +252,8 @@ export default function ClassesPage() {
             </div>
           </div>
 
-
           {/* Late */}
+
           <div className="rounded-xl border bg-card p-5">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-warning/10 p-2">
@@ -268,8 +272,8 @@ export default function ClassesPage() {
             </div>
           </div>
 
-
           {/* Absent */}
+
           <div className="rounded-xl border bg-card p-5">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-destructive/10 p-2">
@@ -287,18 +291,14 @@ export default function ClassesPage() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
-
-      {/* ================= SUBJECT-WISE ================= */}
+      {/* SUBJECT-WISE */}
 
       <div className="rounded-xl border bg-card">
-
         <div className="border-b p-5">
           <div className="flex items-center gap-2">
-
             <BookOpen className="size-5" />
 
             <div>
@@ -310,15 +310,11 @@ export default function ClassesPage() {
                 Attendance performance for each subject.
               </p>
             </div>
-
           </div>
         </div>
 
-
         <div className="divide-y">
-
           {data.subject_wise.length === 0 ? (
-
             <div className="p-8 text-center">
               <p className="font-medium">
                 No subjects available
@@ -328,18 +324,13 @@ export default function ClassesPage() {
                 Create a lecture to see subject attendance.
               </p>
             </div>
-
           ) : (
-
             data.subject_wise.map((subject) => (
-
               <div
                 key={subject.subject}
                 className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between"
               >
-
                 <div className="flex items-center gap-4">
-
                   <div className="rounded-lg bg-primary/10 p-3">
                     <BookOpen className="size-5 text-primary" />
                   </div>
@@ -357,12 +348,9 @@ export default function ClassesPage() {
                       completed
                     </p>
                   </div>
-
                 </div>
 
-
                 <div className="flex flex-wrap items-center gap-6 text-sm">
-
                   <div>
                     <p className="text-muted-foreground">
                       Present
@@ -402,20 +390,14 @@ export default function ClassesPage() {
                       {subject.attendance_percentage}%
                     </p>
                   </div>
-
                 </div>
-
               </div>
-
             ))
-
           )}
-
         </div>
       </div>
 
-
-      {/* ================= CLASS-WISE ================= */}
+      {/* CLASS-WISE */}
 
       <div className="rounded-xl border bg-card">
         <div className="border-b p-5">
@@ -474,243 +456,254 @@ export default function ClassesPage() {
               </p>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                Choose a class and division above to view its attendance
-                summary and individual student records.
+                Choose a class and division above to view its
+                attendance summary and individual student records.
               </p>
             </div>
           </div>
-        ) : (() => {
-          const selected = data.class_wise.find(
-            (classData) =>
-              `${classData.class_name}|||${classData.division}` ===
-              selectedClass,
-          )
+        ) : (
+          (() => {
+            const selected = data.class_wise.find(
+              (classData) =>
+                `${classData.class_name}|||${classData.division}` ===
+                selectedClass,
+            )
 
-          const filteredStudents = classStudents.filter((student) =>
-            `${student.name} ${student.roll_no}`
-              .toLowerCase()
-              .includes(studentSearch.toLowerCase()),
-          )
+            const filteredStudents = classStudents.filter((student) =>
+              `${student.name} ${student.roll_no}`
+                .toLowerCase()
+                .includes(studentSearch.toLowerCase()),
+            )
 
-          return (
-            <div>
-              {selected && (
-                <div className="border-b p-5">
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h4 className="text-xl font-semibold">
-                          {selected.class_name} - {selected.division}
-                        </h4>
+            return (
+              <div>
+                {selected && (
+                  <div className="border-b p-5">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h4 className="text-xl font-semibold">
+                            {selected.class_name} - {selected.division}
+                          </h4>
 
-                        {selected.attendance_percentage < 75 ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
-                            <AlertTriangle className="size-3.5" />
-                            Below 75%
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
-                            Good attendance
-                          </span>
-                        )}
+                          {selected.attendance_percentage < 75 ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                              <AlertTriangle className="size-3.5" />
+                              Below 75%
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
+                              Good attendance
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {selected.students}{" "}
+                          {selected.students === 1
+                            ? "student"
+                            : "students"}{" "}
+                          in this class
+                        </p>
                       </div>
 
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {selected.students}{" "}
-                        {selected.students === 1 ? "student" : "students"} in
-                        this class
-                      </p>
+                      <div className="text-left lg:text-right">
+                        <p className="text-sm text-muted-foreground">
+                          Overall Attendance
+                        </p>
+
+                        <p className="text-3xl font-bold">
+                          {selected.attendance_percentage}%
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="text-left lg:text-right">
-                      <p className="text-sm text-muted-foreground">
-                        Overall Attendance
-                      </p>
+                    <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                      <div className="rounded-xl bg-success/10 p-4">
+                        <p className="text-xs text-muted-foreground">
+                          Present
+                        </p>
 
-                      <p className="text-3xl font-bold">
-                        {selected.attendance_percentage}%
-                      </p>
+                        <p className="mt-1 text-xl font-semibold">
+                          {selected.present}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-warning/10 p-4">
+                        <p className="text-xs text-muted-foreground">
+                          Late
+                        </p>
+
+                        <p className="mt-1 text-xl font-semibold">
+                          {selected.late}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-destructive/10 p-4">
+                        <p className="text-xs text-muted-foreground">
+                          Absent
+                        </p>
+
+                        <p className="mt-1 text-xl font-semibold">
+                          {selected.absent}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-primary/10 p-4">
+                        <p className="text-xs text-muted-foreground">
+                          Students
+                        </p>
+
+                        <p className="mt-1 text-xl font-semibold">
+                          {selected.students}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-                    <div className="rounded-xl bg-success/10 p-4">
-                      <p className="text-xs text-muted-foreground">
-                        Present
-                      </p>
-                      <p className="mt-1 text-xl font-semibold">
-                        {selected.present}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-warning/10 p-4">
-                      <p className="text-xs text-muted-foreground">
-                        Late
-                      </p>
-                      <p className="mt-1 text-xl font-semibold">
-                        {selected.late}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-destructive/10 p-4">
-                      <p className="text-xs text-muted-foreground">
-                        Absent
-                      </p>
-                      <p className="mt-1 text-xl font-semibold">
-                        {selected.absent}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-primary/10 p-4">
-                      <p className="text-xs text-muted-foreground">
-                        Students
-                      </p>
-                      <p className="mt-1 text-xl font-semibold">
-                        {selected.students}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="p-5">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h4 className="font-semibold">
-                      Student Attendance
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Individual attendance records for this class.
-                    </p>
-                  </div>
-
-                  <div className="relative w-full sm:w-64">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
-                    <input
-                      value={studentSearch}
-                      onChange={(event) =>
-                        setStudentSearch(event.target.value)
-                      }
-                      placeholder="Search student..."
-                      className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary"
-                    />
-                  </div>
-                </div>
-
-                {studentsLoading ? (
-                  <div className="flex min-h-[180px] items-center justify-center">
-                    <div className="text-center">
-                      <div className="mx-auto mb-3 size-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      <p className="text-sm text-muted-foreground">
-                        Loading students...
-                      </p>
-                    </div>
-                  </div>
-                ) : filteredStudents.length === 0 ? (
-                  <div className="rounded-xl border py-10 text-center">
-                    <Users className="mx-auto mb-3 size-8 text-muted-foreground" />
-
-                    <p className="font-medium">
-                      No students found
-                    </p>
-
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      No student records are available for this class.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto rounded-xl border">
-                    <table className="w-full min-w-[720px] text-sm">
-                      <thead className="bg-muted/40">
-                        <tr className="border-b">
-                          <th className="px-4 py-3 text-left font-medium">
-                            Student
-                          </th>
-                          <th className="px-4 py-3 text-left font-medium">
-                            Roll No.
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Present
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Late
-                          </th>
-                          <th className="px-4 py-3 text-center font-medium">
-                            Absent
-                          </th>
-                          <th className="px-4 py-3 text-right font-medium">
-                            Attendance
-                          </th>
-                        </tr>
-                      </thead>
-
-                      <tbody className="divide-y">
-                        {filteredStudents.map((student) => (
-                          <tr
-                            key={student.id}
-                            className="transition hover:bg-muted/30"
-                          >
-                            <td className="px-4 py-4">
-                              <div className="font-medium">
-                                {student.name}
-                              </div>
-
-                              {student.email && (
-                                <div className="mt-0.5 text-xs text-muted-foreground">
-                                  {student.email}
-                                </div>
-                              )}
-                            </td>
-
-                            <td className="px-4 py-4 text-muted-foreground">
-                              {student.roll_no}
-                            </td>
-
-                            <td className="px-4 py-4 text-center font-medium">
-                              {student.present}
-                            </td>
-
-                            <td className="px-4 py-4 text-center font-medium">
-                              {student.late}
-                            </td>
-
-                            <td className="px-4 py-4 text-center font-medium">
-                              {student.absent}
-                            </td>
-
-                            <td className="px-4 py-4 text-right">
-                              <span
-                                className={`font-semibold ${
-                                  student.attendance_percentage < 75
-                                    ? "text-destructive"
-                                    : "text-success"
-                                }`}
-                              >
-                                {student.attendance_percentage}%
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
                   </div>
                 )}
+
+                <div className="p-5">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h4 className="font-semibold">
+                        Student Attendance
+                      </h4>
+
+                      <p className="text-sm text-muted-foreground">
+                        Individual attendance records for this class.
+                      </p>
+                    </div>
+
+                    <div className="relative w-full sm:w-64">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                      <input
+                        value={studentSearch}
+                        onChange={(event) =>
+                          setStudentSearch(event.target.value)
+                        }
+                        placeholder="Search student..."
+                        className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {studentsLoading ? (
+                    <div className="flex min-h-[180px] items-center justify-center">
+                      <div className="text-center">
+                        <div className="mx-auto mb-3 size-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+
+                        <p className="text-sm text-muted-foreground">
+                          Loading students...
+                        </p>
+                      </div>
+                    </div>
+                  ) : filteredStudents.length === 0 ? (
+                    <div className="rounded-xl border py-10 text-center">
+                      <Users className="mx-auto mb-3 size-8 text-muted-foreground" />
+
+                      <p className="font-medium">
+                        No students found
+                      </p>
+
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        No student records are available for this class.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border">
+                      <table className="w-full min-w-[720px] text-sm">
+                        <thead className="bg-muted/40">
+                          <tr className="border-b">
+                            <th className="px-4 py-3 text-left font-medium">
+                              Student
+                            </th>
+
+                            <th className="px-4 py-3 text-left font-medium">
+                              Roll No.
+                            </th>
+
+                            <th className="px-4 py-3 text-center font-medium">
+                              Present
+                            </th>
+
+                            <th className="px-4 py-3 text-center font-medium">
+                              Late
+                            </th>
+
+                            <th className="px-4 py-3 text-center font-medium">
+                              Absent
+                            </th>
+
+                            <th className="px-4 py-3 text-right font-medium">
+                              Attendance
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody className="divide-y">
+                          {filteredStudents.map((student) => (
+                            <tr
+                              key={student.id}
+                              className="transition hover:bg-muted/30"
+                            >
+                              <td className="px-4 py-4">
+                                <div className="font-medium">
+                                  {student.name}
+                                </div>
+
+                                {student.email && (
+                                  <div className="mt-0.5 text-xs text-muted-foreground">
+                                    {student.email}
+                                  </div>
+                                )}
+                              </td>
+
+                              <td className="px-4 py-4 text-muted-foreground">
+                                {student.roll_no}
+                              </td>
+
+                              <td className="px-4 py-4 text-center font-medium">
+                                {student.present}
+                              </td>
+
+                              <td className="px-4 py-4 text-center font-medium">
+                                {student.late}
+                              </td>
+
+                              <td className="px-4 py-4 text-center font-medium">
+                                {student.absent}
+                              </td>
+
+                              <td className="px-4 py-4 text-right">
+                                <span
+                                  className={`font-semibold ${
+                                    student.attendance_percentage < 75
+                                      ? "text-destructive"
+                                      : "text-success"
+                                  }`}
+                                >
+                                  {student.attendance_percentage}%
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })()}
+            )
+          })()
+        )}
       </div>
 
-
-      {/* ================= TODAY'S LECTURE ACTIVITY ================= */}
+      {/* TODAY'S LECTURE ACTIVITY */}
 
       <div className="rounded-xl border bg-card">
-
         <div className="border-b p-5">
-
           <div className="flex items-center gap-2">
-
             <CalendarCheck className="size-5" />
 
             <div>
@@ -722,18 +715,12 @@ export default function ClassesPage() {
                 Classes and lectures completed today.
               </p>
             </div>
-
           </div>
-
         </div>
 
-
         {data.lecture_activity.length === 0 ? (
-
           <div className="flex items-center justify-center py-12">
-
             <div className="text-center">
-
               <CalendarCheck className="mx-auto mb-3 size-10 text-muted-foreground" />
 
               <p className="font-medium">
@@ -743,32 +730,22 @@ export default function ClassesPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Today&apos;s lectures will appear here.
               </p>
-
             </div>
-
           </div>
-
         ) : (
-
           <div className="divide-y">
-
             {data.lecture_activity.map((lecture) => (
-
               <div
                 key={lecture.id}
                 className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between"
               >
-
                 <div className="flex items-start gap-4">
-
                   <div className="rounded-lg bg-primary/10 p-3">
                     <BookOpen className="size-5 text-primary" />
                   </div>
 
                   <div>
-
                     <div className="flex flex-wrap items-center gap-2">
-
                       <p className="font-medium">
                         {lecture.title}
                       </p>
@@ -778,30 +755,22 @@ export default function ClassesPage() {
                           Completed
                         </span>
                       )}
-
                     </div>
 
-
                     <p className="text-sm text-muted-foreground">
-                      {lecture.subject} •{" "}
-                      {lecture.class_name}{" "}
+                      {lecture.subject} • {lecture.class_name}{" "}
                       {lecture.division
                         ? `- ${lecture.division}`
                         : ""}
                     </p>
 
-
                     <p className="mt-1 text-sm text-muted-foreground">
                       Teacher: {lecture.teacher || "Unknown"}
                     </p>
-
                   </div>
-
                 </div>
 
-
                 <div className="flex flex-wrap items-center gap-5 text-sm">
-
                   <div>
                     <p className="text-muted-foreground">
                       Present
@@ -811,7 +780,6 @@ export default function ClassesPage() {
                       {lecture.present}
                     </p>
                   </div>
-
 
                   <div>
                     <p className="text-muted-foreground">
@@ -823,7 +791,6 @@ export default function ClassesPage() {
                     </p>
                   </div>
 
-
                   <div>
                     <p className="text-muted-foreground">
                       Absent
@@ -833,19 +800,12 @@ export default function ClassesPage() {
                       {lecture.absent}
                     </p>
                   </div>
-
                 </div>
-
               </div>
-
             ))}
-
           </div>
-
         )}
-
       </div>
-
     </div>
   )
 }
