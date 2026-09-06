@@ -2,6 +2,7 @@
  * API service layer.
  *
  * Frontend data access is handled through FastAPI.
+ *
  * FastAPI -> Supabase PostgreSQL
  */
 
@@ -24,7 +25,8 @@ import {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "http://127.0.0.1:8000"
-  const LATENCY = 350
+
+const LATENCY = 350
 
 function delay<T>(data: T, ms = LATENCY): Promise<T> {
   return new Promise((resolve) =>
@@ -32,7 +34,11 @@ function delay<T>(data: T, ms = LATENCY): Promise<T> {
   )
 }
 
-// Mock stores for features that are not connected to backend yet.
+
+// ============================================================================
+// Mock stores for features that are not connected to backend yet
+// ============================================================================
+
 let studentStore: Student[] = [...seedStudents]
 let staffStore: Staff[] = [...seedStaff]
 let attendanceStore: AttendanceRecord[] = [...seedAttendance]
@@ -44,7 +50,9 @@ let notificationStore: AppNotification[] = [
 ]
 
 
-/* -------------------------------- Students ------------------------------- */
+// ============================================================================
+// Students
+// ============================================================================
 
 // Get all students from FastAPI
 export async function getStudents(): Promise<Student[]> {
@@ -79,8 +87,34 @@ export async function getStudents(): Promise<Student[]> {
 export async function getStudent(
   id: string,
 ): Promise<Student | undefined> {
-  // Backend endpoint can be used later.
-  return delay(studentStore.find((s) => s.id === id))
+  const response = await fetch(`${API_BASE_URL}/students/${id}`)
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return undefined
+    }
+
+    throw new Error("Failed to fetch student")
+  }
+
+  const student = await response.json()
+
+  return {
+    id: student.id,
+    studentId: student.id,
+    fullName: student.name,
+    rollNumber: student.roll_no,
+    email: student.email ?? "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "other",
+    className: student.class_name ?? "",
+    division: student.division ?? "",
+    academicYear: "",
+    status: "active",
+    enrollmentDate: student.created_at ?? "",
+    attendancePercentage: 0,
+  }
 }
 
 
@@ -107,6 +141,7 @@ export async function createStudent(
   }
 
   const data = await response.json()
+
   const createdStudent = data[0]
 
   const student: Student = {
@@ -130,7 +165,95 @@ export async function createStudent(
 }
 
 
-/* -------------------------------- Dashboard ------------------------------ */
+// Update student
+export async function updateStudent(
+  id: string,
+  input: {
+    fullName?: string
+    rollNumber?: string
+    className?: string
+    division?: string
+    email?: string
+  },
+): Promise<Student> {
+  const response = await fetch(
+    `${API_BASE_URL}/students/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...(input.fullName !== undefined && {
+          name: input.fullName,
+        }),
+
+        ...(input.rollNumber !== undefined && {
+          roll_no: input.rollNumber,
+        }),
+
+        ...(input.className !== undefined && {
+          class_name: input.className,
+        }),
+
+        ...(input.division !== undefined && {
+          division: input.division,
+        }),
+
+        ...(input.email !== undefined && {
+          email: input.email,
+        }),
+      }),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to update student")
+  }
+
+  const student = await response.json()
+
+  return {
+    id: student.id,
+    studentId: student.id,
+    fullName: student.name,
+    rollNumber: student.roll_no,
+    email: student.email ?? "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "other",
+    className: student.class_name ?? "",
+    division: student.division ?? "",
+    academicYear: "",
+    status: "active",
+    enrollmentDate: student.created_at ?? "",
+    attendancePercentage: 0,
+  }
+}
+
+
+// Delete student
+export async function deleteStudent(
+  id: string,
+): Promise<{ id: string }> {
+  const response = await fetch(
+    `${API_BASE_URL}/students/${id}`,
+    {
+      method: "DELETE",
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to delete student")
+  }
+
+  return { id }
+}
+
+
+// ============================================================================
+// Dashboard
+// ============================================================================
 
 // Present students today
 export async function getPresentToday(): Promise<number> {
@@ -215,7 +338,9 @@ export async function getClassesOverview() {
 }
 
 
-/* -------------------------------- Lectures -------------------------------- */
+// ============================================================================
+// Lectures
+// ============================================================================
 
 // Get all lectures
 export async function getLectures() {
@@ -231,11 +356,14 @@ export async function getLectures() {
 }
 
 
-/* ------------------------- Students For Lecture -------------------------- */
+// ============================================================================
+// Students For Lecture
+// ============================================================================
 
 // This function is kept for future use.
 // Attendance page should use getStudents()
 // because all students must be displayed.
+
 export async function getStudentsForLecture(
   lectureId: string,
 ) {
@@ -270,7 +398,9 @@ export async function getStudentsForLecture(
 }
 
 
-/* --------------------------- Attendance Saving --------------------------- */
+// ============================================================================
+// Attendance Saving
+// ============================================================================
 
 // Save attendance for all students of a lecture
 export async function saveBulkAttendance(
@@ -302,7 +432,9 @@ export async function saveBulkAttendance(
 }
 
 
-/* --------------------------------- Staff --------------------------------- */
+// ============================================================================
+// Staff
+// ============================================================================
 
 // Get teachers/staff from FastAPI
 export async function getStaff(): Promise<Staff[]> {
@@ -372,6 +504,7 @@ export async function createStaff(
   }
 
   const data = await response.json()
+
   const teacher = data[0]
 
   return {
@@ -477,7 +610,9 @@ export async function deleteStaff(
 }
 
 
-/* ------------------------------- Attendance ------------------------------ */
+// ============================================================================
+// Attendance
+// ============================================================================
 
 // Old/mock attendance functions
 // Kept so other existing pages don't break.
@@ -520,6 +655,10 @@ export async function updateAttendance(
 }
 
 
+// ============================================================================
+// Classes
+// ============================================================================
+
 export async function getClassStudents(
   className: string,
   division: string,
@@ -538,7 +677,9 @@ export async function getClassStudents(
 }
 
 
-/* ----------------------------- Notifications ----------------------------- */
+// ============================================================================
+// Notifications
+// ============================================================================
 
 export async function getNotifications(): Promise<
   AppNotification[]
@@ -565,7 +706,9 @@ export async function markNotificationsRead(): Promise<
 }
 
 
-/* -------------------------------- Reports -------------------------------- */
+// ============================================================================
+// Reports
+// ============================================================================
 
 export async function getReportsOverview() {
   const response = await fetch(

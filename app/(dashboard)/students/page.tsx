@@ -30,15 +30,48 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { getStudents } from "@/lib/api"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+import { Label } from "@/components/ui/label"
+
+import {
+  getStudents,
+  updateStudent,
+  deleteStudent,
+} from "@/lib/api"
+
 import type { Student } from "@/lib/types"
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [search, setSearch] = useState("")
   const [addStudentOpen, setAddStudentOpen] = useState(false)
+
+  const [editStudentOpen, setEditStudentOpen] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    rollNumber: "",
+    className: "",
+    division: "",
+    email: "",
+  })
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deletingStudentId, setDeletingStudentId] = useState<string | null>(
+    null,
+  )
 
   useEffect(() => {
     async function loadStudents() {
@@ -78,6 +111,98 @@ export default function StudentsPage() {
   const activeStudents = students.filter(
     (student) => student.status === "active",
   ).length
+
+  // Open Edit Dialog
+  function handleEdit(student: Student) {
+    setSelectedStudent(student)
+
+    setEditForm({
+      fullName: student.fullName,
+      rollNumber: student.rollNumber,
+      className: student.className,
+      division: student.division,
+      email: student.email,
+    })
+
+    setEditStudentOpen(true)
+  }
+
+  // Save edited student
+  async function handleSaveEdit() {
+    if (!selectedStudent) return
+
+    if (!editForm.fullName.trim()) {
+      alert("Student name is required.")
+      return
+    }
+
+    if (!editForm.rollNumber.trim()) {
+      alert("Roll number is required.")
+      return
+    }
+
+    try {
+      setSavingEdit(true)
+
+      const updatedStudent = await updateStudent(
+        selectedStudent.id,
+        {
+          fullName: editForm.fullName.trim(),
+          rollNumber: editForm.rollNumber.trim(),
+          className: editForm.className.trim(),
+          division: editForm.division.trim(),
+          email: editForm.email.trim(),
+        },
+      )
+
+      setStudents((current) =>
+        current.map((student) =>
+          student.id === updatedStudent.id
+            ? {
+                ...student,
+                ...updatedStudent,
+              }
+            : student,
+        ),
+      )
+
+      setEditStudentOpen(false)
+      setSelectedStudent(null)
+
+      alert("Student updated successfully.")
+    } catch (err) {
+      console.error(err)
+      alert("Failed to update student.")
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  // Delete student
+  async function handleDelete(student: Student) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${student.fullName}?`,
+    )
+
+    if (!confirmed) return
+
+    try {
+      setDeletingStudentId(student.id)
+
+      await deleteStudent(student.id)
+
+      setStudents((current) =>
+        current.filter((item) => item.id !== student.id),
+      )
+
+      alert("Student deleted successfully.")
+    } catch (err) {
+      console.error(err)
+      alert("Failed to delete student.")
+    } finally {
+      setDeletingStudentId(null)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -333,15 +458,23 @@ export default function StudentsPage() {
                           <DropdownMenuContent align="end">
 
                             {/* Edit */}
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(student)}
+                            >
                               <Pencil className="mr-2 size-4" />
                               Edit
                             </DropdownMenuItem>
 
                             {/* Delete */}
-                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              disabled={deletingStudentId === student.id}
+                              onClick={() => handleDelete(student)}
+                            >
                               <Trash2 className="mr-2 size-4" />
-                              Delete
+                              {deletingStudentId === student.id
+                                ? "Deleting..."
+                                : "Delete"}
                             </DropdownMenuItem>
 
                           </DropdownMenuContent>
@@ -374,6 +507,145 @@ export default function StudentsPage() {
           setStudents((current) => [student, ...current])
         }}
       />
+
+      {/* Edit Student Dialog */}
+      <Dialog
+        open={editStudentOpen}
+        onOpenChange={setEditStudentOpen}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+
+          <DialogHeader>
+            <DialogTitle>
+              Edit Student
+            </DialogTitle>
+
+            <DialogDescription>
+              Update the student's academic and contact information.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+
+            {/* Full Name */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-full-name">
+                Full Name
+              </Label>
+
+              <Input
+                id="edit-full-name"
+                value={editForm.fullName}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    fullName: e.target.value,
+                  })
+                }
+                placeholder="Enter full name"
+              />
+            </div>
+
+            {/* Roll Number */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-roll-number">
+                Roll Number
+              </Label>
+
+              <Input
+                id="edit-roll-number"
+                value={editForm.rollNumber}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    rollNumber: e.target.value,
+                  })
+                }
+                placeholder="Enter roll number"
+              />
+            </div>
+
+            {/* Class */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-class">
+                Class
+              </Label>
+
+              <Input
+                id="edit-class"
+                value={editForm.className}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    className: e.target.value,
+                  })
+                }
+                placeholder="Enter class"
+              />
+            </div>
+
+            {/* Division */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-division">
+                Division
+              </Label>
+
+              <Input
+                id="edit-division"
+                value={editForm.division}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    division: e.target.value,
+                  })
+                }
+                placeholder="Enter division"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-email">
+                Email
+              </Label>
+
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    email: e.target.value,
+                  })
+                }
+                placeholder="Enter email"
+              />
+            </div>
+
+          </div>
+
+          <DialogFooter>
+
+            <Button
+              variant="outline"
+              onClick={() => setEditStudentOpen(false)}
+              disabled={savingEdit}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={handleSaveEdit}
+              disabled={savingEdit}
+            >
+              {savingEdit ? "Saving..." : "Save Changes"}
+            </Button>
+
+          </DialogFooter>
+
+        </DialogContent>
+      </Dialog>
 
     </div>
   )
